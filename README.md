@@ -1,24 +1,37 @@
-# RSEC SPMB Conference Project
+# Riemann Stereographic Energy Coupling for Motor-Imagery EEG Analysis
 
-This is the clean, conference-only reproducibility project for:
+This repository contains reproducible code and summary outputs for analyzing motor-imagery-related EEG network reconfiguration using **Riemann Stereographic Energy Coupling (RSEC)**.
 
-**Riemann Stereographic Energy Coupling Suggests Motor-Imagery-Specific EEG Network Reconfiguration**
+RSEC is a nonlinear sensor-space feature-extraction method that transforms EEG epochs into analytic signals, maps them through a Riemann stereographic energy representation, and detects transient shared-energy events across EEG channel pairs.
 
-This project is intentionally separated from the journal project so conference and journal results do not get mixed.
+## Project Overview
 
-## What is included
+The analysis uses the public **PhysioNet EEG Motor Movement/Imagery dataset** and evaluates global RSEC density across rest, motor imagery, and motor execution conditions.
+
+The main analysis includes:
+
+- RSEC shared-energy feature extraction
+- Subject-level rest, imagery, and execution comparisons
+- Motor imagery versus motor execution contrast
+- Phase-randomized surrogate control
+- Node-participation summaries
+- Reproducible figure generation from saved summary CSV files
+
+Raw EEG recordings are **not included** in this repository. Full reruns load the PhysioNet EEGMMI dataset through MNE-Python.
+
+## Repository Structure
 
 ```text
 rsec_eeg/                         Core RSEC feature, statistic, and surrogate functions
-scripts/                          Reproducibility and figure scripts
-results/summary/                  Small CSV summaries used for the SPMB paper
+scripts/                          Analysis, verification, and figure-generation scripts
+results/summary/                  Small CSV files containing subject-level/statistical summaries
 results/figures/                  Figures generated from the summary CSV files
-docs/RSEC_SPMB_current_draft.pdf  Current reference PDF draft
+docs/                             Reference manuscript PDF or related documentation
 ```
 
-Raw PhysioNet EEG files are **not** included. Full reruns download/load data through MNE-Python.
+## Setup
 
-## Quick setup on Windows PowerShell
+### Python Virtual Environment
 
 ```powershell
 python -m venv .venv
@@ -27,9 +40,9 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-## Quick check without rerunning EEG analysis
+## Verify Saved Results
 
-This verifies that the included CSV summaries match the conference result values.
+This script checks that the included summary CSV files match the reported statistical values.
 
 ```powershell
 python .\scripts\verify_reported_statistics.py
@@ -38,82 +51,124 @@ python .\scripts\verify_reported_statistics.py
 Expected final line:
 
 ```text
-All conference p-values verified.
+All reported p-values verified.
 ```
 
-## Recreate conference figures from included CSV summaries
+## Recreate Figures from Saved Summaries
 
 ```powershell
 python .\scripts\make_figures_from_summaries.py
 ```
 
-Generated figures:
+Generated figures are saved to:
 
 ```text
-results/figures/fig2_task_minus_rest_deltas.png
-results/figures/fig3_real_minus_surrogate_delta.png
-results/figures/fig4_top_node_participation_imagery.png
+results/figures/
 ```
 
-## Official conference summary values in this project
-
-Use these values consistently in the conference paper:
+Main generated figures:
 
 ```text
-Imagery vs rest:                   delta = -0.002123, p = 0.00415, d_z = -0.300
-Execution vs rest:                 delta =  0.000247, p = 0.248,   d_z =  0.034
-Imagery delta vs execution delta:  delta = -0.002370, p = 8.72e-7, d_z = -0.443
-Real delta vs surrogate delta:     delta = -0.002184, p = 0.00333
+fig2_task_minus_rest_deltas.png
+fig3_real_minus_surrogate_delta.png
+fig4_top_node_participation_imagery.png
 ```
 
-## Full EEG rerun commands
+## Reproduced Summary Values
 
-Full reruns can take time. Use these only when you want to recompute outputs from PhysioNet EEGMMI.
+The saved summaries and full rerun commands reproduce the following subject-level results:
+
+```text
+Imagery vs rest:
+Δ = -0.002258, p = 0.00148, d_z = -0.354
+
+Execution vs rest:
+Δ = -0.000005, p = 0.373, d_z = -0.0007
+
+Imagery Δ vs execution Δ:
+Δ = -0.002254, p = 8.02e-10, d_z = -0.567
+
+Real Δ vs phase-randomized surrogate Δ:
+Δ = -0.002289, p = 0.00153
+```
+
+The main interpretation is that motor imagery significantly reduced global RSEC density relative to rest, whereas motor execution did not produce a comparable global-density change. The imagery-related effect also differed from the phase-randomized surrogate control.
+
+## Full EEG Rerun
+
+Full reruns recompute the analysis from the PhysioNet EEGMMI recordings. These commands may take time depending on hardware and whether the data are already downloaded.
 
 ```powershell
 $subjects = 1..109 | Where-Object { $_ -notin 88,92,100 }
+```
 
+### Motor Imagery
+
+```powershell
 python .\scripts\run_physionet_eegmmi.py `
     --subjects $subjects `
     --mode imagery_lr `
-    --data-dir mne_data `
-    --out-dir outputs_physionet_imagery_50 `
+    --rest-run 1 `
+    --data-dir "C:\Users\Bayazit Karaman\mne_data" `
+    --out-dir outputs_physionet_imagery_fresh `
+    --duration-sec 4 `
+    --band 1 31 `
+    --decimals 3 `
     --max-epochs 50
+```
 
+### Motor Execution
+
+```powershell
 python .\scripts\run_physionet_eegmmi.py `
     --subjects $subjects `
     --mode execution_lr `
-    --data-dir mne_data `
-    --out-dir outputs_physionet_execution_50 `
+    --rest-run 1 `
+    --data-dir "C:\Users\Bayazit Karaman\mne_data" `
+    --out-dir outputs_physionet_execution_fresh `
+    --duration-sec 4 `
+    --band 1 31 `
+    --decimals 3 `
     --max-epochs 50
-
-python .\scripts\compare_physionet_modes.py `
-    --imagery-dir outputs_physionet_imagery_50 `
-    --execution-dir outputs_physionet_execution_50 `
-    --out-dir outputs_spmb_compare
 ```
 
-Surrogate control:
+### Compare Imagery and Execution
+
+```powershell
+python .\scripts\compare_physionet_modes.py `
+    --imagery-dir outputs_physionet_imagery_fresh `
+    --execution-dir outputs_physionet_execution_fresh `
+    --out-dir outputs_spmb_compare_fresh
+```
+
+### Phase-Randomized Surrogate Control
 
 ```powershell
 python .\scripts\run_physionet_surrogate.py `
     --subjects $subjects `
     --mode imagery_lr `
-    --data-dir mne_data `
-    --out-dir outputs_surrogate_imagery_50 `
+    --rest-run 1 `
+    --data-dir "C:\Users\Bayazit Karaman\mne_data" `
+    --out-dir outputs_surrogate_imagery_fresh `
+    --duration-sec 4 `
+    --band 1 31 `
+    --decimals 3 `
     --max-epochs 50 `
     --seed 42
 ```
 
-## Create a new GitHub repository from this project
+## Notes on Reproducibility
 
-```powershell
-git init
-git add .
-git commit -m "Initial RSEC SPMB conference project"
-git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/RSEC-SPMB-Conference.git
-git push -u origin main
+The repository includes small summary CSV files and generated figures so the reported results can be checked without rerunning the full EEG pipeline. Full EEG reruns should use the same subject list, preprocessing parameters, rounding precision, epoch duration, and surrogate seed to reproduce the saved statistics.
+
+Excluded subjects:
+
+```text
+88, 92, 100
 ```
 
-Use a separate GitHub repository for the journal project.
+These subjects were excluded because baseline and task recordings had inconsistent sampling frequencies.
+
+## Citation
+
+A citation entry will be added after publication.
