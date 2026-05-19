@@ -1,0 +1,4 @@
+comparison,test,n_subjects,statistic,p_value,rest_mean,task_mean,delta_mean,delta_median,delta_std,cohens_dz,imagery_delta_mean,execution_delta_mean,difference_mean_imagery_minus_execution,difference_median_imagery_minus_execution,difference_std
+Imagery: task vs rest,Wilcoxon signed-rank,106,1827.0,0.0014794698640171469,0.020488806723881852,0.018230354043122923,-0.00225845268075893,-0.001040900228725751,0.006379589869282054,-0.3540122056487452,,,,,
+Execution: task vs rest,Wilcoxon signed-rank,106,2553.0,0.3732464119585539,0.020488806723881852,0.02048424840856477,-4.558315317085753e-06,0.0003733069472001485,0.00634679641928667,-0.0007182072680374506,,,,,
+imagery delta vs execution delta,Wilcoxon signed-rank on task-minus-rest deltas,106,886.0,8.016083848109271e-10,,,,,,-0.5671923401733998,-0.00225845268075893,-4.558315317085753e-06,-0.002253894365441845,-0.0018674045138888998,0.003973774336855101

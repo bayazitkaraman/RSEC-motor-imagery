@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# OS/editor
+.DS_Store
+.vscode/
+
+# Large/intermediate outputs
+mne_data/
+outputs_*/
+*.edf
+*.fif
+*.npy
+*.pkl
+
+# LaTeX/build artifacts
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.synctex.gz
+
+.venv/
+
+__pycache__/
+
+*.pyc
