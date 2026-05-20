@@ -1,13 +1,7 @@
-"""Run RNT/AHN analysis on the public PhysioNet EEG Motor Movement/Imagery dataset.
+"""Run RSEC analysis on the public PhysioNet EEG Motor Movement/Imagery dataset.
 
-Run from the repository root, for example:
-    python .\scripts\run_physionet_eegmmi.py --subjects 1 --mode imagery_lr --max-epochs 10
-
-This version imports from the package folder:
-    rnt_ahn_eeg/
-        features.py
-        stats.py
-        surrogate.py
+Example:
+    python scripts/run_physionet_eegmmi.py --subjects 1 --mode imagery_lr --max-epochs 10
 """
 
 from __future__ import annotations
@@ -16,7 +10,6 @@ import argparse
 import sys
 from pathlib import Path
 
-# Allow the script to be run from either the repository root or the scripts folder.
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -26,16 +19,16 @@ import mne
 import numpy as np
 import pandas as pd
 from mne.datasets import eegbci
-from scipy import stats
 
 from rsec_eeg.features import analyze_epochs
+from rsec_eeg.stats import paired_wilcoxon
 
 
 RUN_SETS = {
-    "imagery_lr": [4, 8, 12],       # left vs right hand motor imagery
-    "execution_lr": [3, 7, 11],     # left vs right hand motor execution
-    "imagery_hf": [6, 10, 14],      # both hands vs both feet motor imagery
-    "execution_hf": [5, 9, 13],     # both hands vs both feet motor execution
+    "imagery_lr": [4, 8, 12],
+    "execution_lr": [3, 7, 11],
+    "imagery_hf": [6, 10, 14],
+    "execution_hf": [5, 9, 13],
 }
 
 
@@ -45,24 +38,7 @@ def fixed_length_windows(
     window_sec: float,
     step_sec: float | None = None,
 ) -> np.ndarray:
-    """Split continuous EEG data into fixed-length windows.
-
-    Parameters
-    ----------
-    data:
-        Array shaped channels x times.
-    sfreq:
-        Sampling frequency.
-    window_sec:
-        Window length in seconds.
-    step_sec:
-        Step length in seconds. If None, non-overlapping windows are used.
-
-    Returns
-    -------
-    windows:
-        Array shaped windows x channels x times.
-    """
+    """Split continuous EEG data into fixed-length windows."""
     if step_sec is None:
         step_sec = window_sec
 
@@ -86,7 +62,7 @@ def analyze_segments(
     channel_names: list[str],
     decimals: int = 3,
 ):
-    """Analyze a stack of EEG segments using RNT shared-energy features."""
+    """Analyze a stack of EEG segments using RSEC shared-energy features."""
     if segments.size == 0:
         raise ValueError(f"No segments available for subject {subject}, condition {condition}.")
 
@@ -97,7 +73,7 @@ def analyze_segments(
             "subject": subject,
             "condition": condition,
             "epoch": epoch_index,
-            "ahn_density": float(density),
+            "rsec_density": float(density),
         })
 
     return (
@@ -107,36 +83,38 @@ def analyze_segments(
     )
 
 
-def summarize_and_compare(results: pd.DataFrame, rest_label: str = "rest", task_label: str = "task") -> dict:
+def summarize_and_compare(
+    results: pd.DataFrame,
+    rest_label: str = "rest",
+    task_label: str = "task",
+) -> dict:
     """Create condition, subject, and paired-test summaries."""
+    value_col = "rsec_density"
+    if value_col not in results.columns and "ahn_density" in results.columns:
+        value_col = "ahn_density"
+
     condition_summary = (
-        results.groupby("condition")["ahn_density"]
+        results.groupby("condition")[value_col]
         .agg(["count", "mean", "std", "median", "min", "max"])
         .reset_index()
     )
 
     subject_summary = (
-        results.groupby(["subject", "condition"])["ahn_density"]
+        results.groupby(["subject", "condition"])[value_col]
         .mean()
         .reset_index()
-        .pivot(index="subject", columns="condition", values="ahn_density")
+        .pivot(index="subject", columns="condition", values=value_col)
         .reset_index()
     )
 
     paired_test = None
     if rest_label in subject_summary.columns and task_label in subject_summary.columns:
         paired = subject_summary[["subject", rest_label, task_label]].dropna()
-        delta = paired[task_label] - paired[rest_label]
-        stat, p_value = stats.wilcoxon(paired[task_label], paired[rest_label])
-        dz = float(delta.mean() / delta.std(ddof=1)) if delta.std(ddof=1) > 0 else np.nan
-        paired_test = {
-            "test": "Wilcoxon signed-rank",
-            "n_subjects": int(len(paired)),
-            "statistic": float(stat),
-            "p_value": float(p_value),
-            "task_minus_rest_mean": float(delta.mean()),
-            "cohens_dz": dz,
-        }
+        paired_test = paired_wilcoxon(
+            task=paired[task_label].to_numpy(),
+            rest=paired[rest_label].to_numpy(),
+        )
+        paired_test["task_minus_rest_mean"] = paired_test["delta_mean"]
 
     return {
         "condition_summary": condition_summary,
@@ -235,11 +213,18 @@ def run_subject(
         decimals=decimals,
     )
 
-    return pd.concat([rest_df, task_df], ignore_index=True), ch_names, rest_pairs, task_pairs
+    return (
+        pd.concat([rest_df, task_df], ignore_index=True),
+        ch_names,
+        rest_pairs,
+        task_pairs,
+        rest_nodes,
+        task_nodes,
+    )
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="RNT/AHN analysis for PhysioNet EEGMMI.")
+    parser = argparse.ArgumentParser(description="RSEC analysis for PhysioNet EEGMMI.")
     parser.add_argument("--subjects", type=int, nargs="+", default=[1])
     parser.add_argument("--mode", choices=sorted(RUN_SETS), default="imagery_lr")
     parser.add_argument("--rest-run", type=int, default=1, help="1=eyes open, 2=eyes closed")
@@ -248,8 +233,16 @@ def main() -> None:
     parser.add_argument("--duration-sec", type=float, default=4.0)
     parser.add_argument("--band", type=float, nargs=2, default=[1.0, 31.0])
     parser.add_argument("--decimals", type=int, default=3)
-    parser.add_argument("--max-epochs", type=int, default=20)
+    parser.add_argument(
+        "--max-epochs",
+        type=int,
+        default=0,
+        help="Maximum epochs per condition. Use 0 to analyze all available epochs."
+    )
     args = parser.parse_args()
+
+    if args.max_epochs <= 0:
+        args.max_epochs = None
 
     if args.out_dir is None:
         args.out_dir = Path(f"outputs_physionet_{args.mode}")
@@ -259,11 +252,14 @@ def main() -> None:
     all_df = []
     all_rest_pairs = []
     all_task_pairs = []
+    all_rest_nodes = []
+    all_task_nodes = []
+    node_rows = []
     ch_names = None
 
     for subject in args.subjects:
         print(f"Analyzing subject {subject}...")
-        df, names, rest_pairs, task_pairs = run_subject(
+        df, names, rest_pairs, task_pairs, rest_nodes, task_nodes = run_subject(
             subject=subject,
             data_dir=args.data_dir,
             mode=args.mode,
@@ -276,7 +272,18 @@ def main() -> None:
         all_df.append(df)
         all_rest_pairs.append(rest_pairs)
         all_task_pairs.append(task_pairs)
+        all_rest_nodes.append(rest_nodes)
+        all_task_nodes.append(task_nodes)
         ch_names = names
+
+        node_rows.append(pd.DataFrame({
+            "subject": subject,
+            "channel": names,
+            "rest_node_participation_mean": rest_nodes,
+            "task_node_participation_mean": task_nodes,
+            "delta_node_participation_mean": task_nodes - rest_nodes,
+            "abs_delta_node_participation_mean": np.abs(task_nodes - rest_nodes),
+        }))
 
     results = pd.concat(all_df, ignore_index=True)
     comparison = summarize_and_compare(results, rest_label="rest", task_label="task")
@@ -285,9 +292,21 @@ def main() -> None:
     comparison["condition_summary"].to_csv(args.out_dir / "condition_summary.csv", index=False)
     comparison["subject_summary"].to_csv(args.out_dir / "subject_summary.csv", index=False)
 
+    if comparison["paired_test"] is not None:
+        pd.DataFrame([comparison["paired_test"]]).to_csv(args.out_dir / "paired_test.csv", index=False)
+
+    if node_rows:
+        pd.concat(node_rows, ignore_index=True).to_csv(
+            args.out_dir / "node_participation_by_subject.csv",
+            index=False,
+        )
+
     if ch_names is not None:
         rest_pair_mean = np.mean(np.stack(all_rest_pairs, axis=0), axis=0)
         task_pair_mean = np.mean(np.stack(all_task_pairs, axis=0), axis=0)
+        rest_node_mean = np.mean(np.stack(all_rest_nodes, axis=0), axis=0)
+        task_node_mean = np.mean(np.stack(all_task_nodes, axis=0), axis=0)
+
         pd.DataFrame(rest_pair_mean, index=ch_names, columns=ch_names).to_csv(
             args.out_dir / "rest_pair_matrix_mean.csv"
         )
@@ -297,6 +316,13 @@ def main() -> None:
         pd.DataFrame(task_pair_mean - rest_pair_mean, index=ch_names, columns=ch_names).to_csv(
             args.out_dir / "task_minus_rest_pair_matrix_mean.csv"
         )
+        pd.DataFrame({
+            "channel": ch_names,
+            "rest_node_participation_mean": rest_node_mean,
+            "task_node_participation_mean": task_node_mean,
+            "delta_node_participation_mean": task_node_mean - rest_node_mean,
+            "abs_delta_node_participation_mean": np.abs(task_node_mean - rest_node_mean),
+        }).to_csv(args.out_dir / "node_participation_mean.csv", index=False)
 
     print("\nCondition summary:")
     print(comparison["condition_summary"].to_string(index=False))
@@ -307,10 +333,10 @@ def main() -> None:
     if {"rest", "task"}.issubset(subject_summary.columns):
         ax = subject_summary[["rest", "task"]].plot(kind="bar", figsize=(9, 4))
         ax.set_xlabel("Subject")
-        ax.set_ylabel("Mean RNT/AHN density")
-        ax.set_title(f"PhysioNet EEGMMI RNT/AHN density: {args.mode}")
+        ax.set_ylabel("Mean RSEC density")
+        ax.set_title(f"PhysioNet EEGMMI RSEC density: {args.mode}")
         plt.tight_layout()
-        plt.savefig(args.out_dir / "ahn_density_by_subject.png", dpi=200)
+        plt.savefig(args.out_dir / "rsec_density_by_subject.png", dpi=200)
         plt.close()
 
     print(f"\nSaved outputs to: {args.out_dir.resolve()}")

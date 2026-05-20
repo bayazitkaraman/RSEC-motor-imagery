@@ -1,4 +1,4 @@
-"""Run a phase-randomized surrogate control for RNT/AHN PhysioNet EEGMMI analysis."""
+"""Run a phase-randomized surrogate control for RSEC PhysioNet EEGMMI analysis."""
 
 from __future__ import annotations
 
@@ -15,8 +15,8 @@ for path in [PROJECT_ROOT, SCRIPTS_DIR]:
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from scipy import stats
 
+from rsec_eeg.stats import mean_ci_95, wilcoxon_signed_rank
 from rsec_eeg.surrogate import phase_randomize_epoch
 from run_physionet_eegmmi import (
     RUN_SETS,
@@ -27,6 +27,19 @@ from run_physionet_eegmmi import (
     analyze_segments,
     summarize_and_compare,
 )
+
+
+def _value_col(df: pd.DataFrame) -> str:
+    if "rsec_density" in df.columns:
+        return "rsec_density"
+    if "ahn_density" in df.columns:
+        return "ahn_density"
+    raise ValueError("Expected rsec_density or ahn_density column.")
+
+
+def _cohens_dz(delta: np.ndarray) -> float:
+    sd = np.std(delta, ddof=1)
+    return float(np.mean(delta) / sd) if sd > 0 else np.nan
 
 
 def _make_surrogate_segments(segments: np.ndarray, rng: np.random.Generator) -> np.ndarray:
@@ -70,11 +83,12 @@ def _paired_rest_task(df: pd.DataFrame, data_type: str) -> dict:
 
 
 def _compare_real_surrogate_deltas(df: pd.DataFrame) -> dict:
+    col = _value_col(df)
     subject_mean = (
-        df.groupby(["subject", "data_type", "condition"])["ahn_density"]
+        df.groupby(["subject", "data_type", "condition"])[col]
         .mean()
         .reset_index()
-        .pivot_table(index=["subject", "data_type"], columns="condition", values="ahn_density")
+        .pivot_table(index=["subject", "data_type"], columns="condition", values=col)
         .reset_index()
     )
     subject_mean["delta_task_minus_rest"] = subject_mean["task"] - subject_mean["rest"]
@@ -83,27 +97,32 @@ def _compare_real_surrogate_deltas(df: pd.DataFrame) -> dict:
         subject_mean["data_type"] == "phase_randomized_surrogate"
     ][["subject", "delta_task_minus_rest"]]
     merged = real.merge(sur, on="subject", suffixes=("_real", "_surrogate"))
-    stat, p = stats.wilcoxon(
-        merged["delta_task_minus_rest_real"],
-        merged["delta_task_minus_rest_surrogate"],
-    )
-    diff = merged["delta_task_minus_rest_real"] - merged["delta_task_minus_rest_surrogate"]
+
+    real_delta = merged["delta_task_minus_rest_real"].to_numpy()
+    surrogate_delta = merged["delta_task_minus_rest_surrogate"].to_numpy()
+    diff = real_delta - surrogate_delta
+    stat, p = wilcoxon_signed_rank(real_delta, surrogate_delta)
+    ci_low, ci_high = mean_ci_95(diff)
+
     return {
         "comparison": "real delta vs phase-randomized surrogate delta",
         "test": "Wilcoxon signed-rank on task-minus-rest deltas",
         "n_subjects": int(len(merged)),
         "statistic": float(stat),
         "p_value": float(p),
-        "real_delta_mean": float(merged["delta_task_minus_rest_real"].mean()),
-        "surrogate_delta_mean": float(merged["delta_task_minus_rest_surrogate"].mean()),
+        "real_delta_mean": float(real_delta.mean()),
+        "surrogate_delta_mean": float(surrogate_delta.mean()),
         "difference_mean_real_minus_surrogate": float(diff.mean()),
-        "difference_median_real_minus_surrogate": float(diff.median()),
-        "difference_std": float(diff.std(ddof=1)),
+        "difference_median_real_minus_surrogate": float(np.median(diff)),
+        "difference_std": float(np.std(diff, ddof=1)),
+        "difference_ci95_low": ci_low,
+        "difference_ci95_high": ci_high,
+        "cohens_dz": _cohens_dz(diff),
     }
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Phase-randomized surrogate control for RNT/AHN.")
+    parser = argparse.ArgumentParser(description="Phase-randomized surrogate control for RSEC.")
     parser.add_argument("--subjects", type=int, nargs="+", default=[1])
     parser.add_argument("--mode", choices=sorted(RUN_SETS), default="imagery_lr")
     parser.add_argument("--rest-run", type=int, default=1)
@@ -117,6 +136,7 @@ def main() -> None:
     args = parser.parse_args()
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
+    args.data_dir.mkdir(parents=True, exist_ok=True)
     rng = np.random.default_rng(args.seed)
 
     all_df = []
@@ -146,13 +166,14 @@ def main() -> None:
         ))
 
     all_results = pd.concat(all_df, ignore_index=True)
+    col = _value_col(all_results)
     all_results.to_csv(args.out_dir / "surrogate_epoch_level_results.csv", index=False)
 
     subject_summary = (
-        all_results.groupby(["subject", "data_type", "condition"])["ahn_density"]
+        all_results.groupby(["subject", "data_type", "condition"])[col]
         .mean()
         .reset_index()
-        .pivot_table(index=["subject", "data_type"], columns="condition", values="ahn_density")
+        .pivot_table(index=["subject", "data_type"], columns="condition", values=col)
         .reset_index()
     )
     subject_summary["delta_task_minus_rest"] = subject_summary["task"] - subject_summary["rest"]
@@ -166,10 +187,15 @@ def main() -> None:
     stats_df = pd.DataFrame(stats_rows)
     stats_df.to_csv(args.out_dir / "surrogate_statistical_summary.csv", index=False)
 
-    # Figure: real-minus-surrogate deltas
     wide = subject_summary.pivot(index="subject", columns="data_type", values="delta_task_minus_rest").reset_index()
     if {"real", "phase_randomized_surrogate"}.issubset(wide.columns):
         values = wide["real"] - wide["phase_randomized_surrogate"]
+        p = float(
+            stats_df.loc[
+                stats_df["comparison"].eq("real delta vs phase-randomized surrogate delta"),
+                "p_value",
+            ].iloc[0]
+        )
         fig, ax = plt.subplots(figsize=(4.8, 3.35))
         ax.boxplot([values], tick_labels=["Real − surrogate"], showmeans=True)
         x = 1 + rng.normal(0, 0.035, size=len(values))
@@ -177,6 +203,14 @@ def main() -> None:
         ax.axhline(0, linestyle="--", linewidth=1)
         ax.set_ylabel("Real delta − surrogate delta", labelpad=10)
         ax.set_title("Phase-randomized surrogate control", pad=8)
+        ax.text(
+            1.0,
+            values.max() - 0.08 * (values.max() - values.min()),
+            f"mean = {values.mean():.6f}\np = {p:.5g}",
+            ha="center",
+            va="top",
+            fontsize=9,
+        )
         fig.subplots_adjust(left=0.25, right=0.96, top=0.88, bottom=0.18)
         fig.savefig(args.out_dir / "fig3_real_minus_surrogate_delta.png", dpi=300)
         plt.close(fig)
