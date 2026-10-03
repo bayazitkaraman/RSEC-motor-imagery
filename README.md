@@ -2,8 +2,6 @@
 
 This repository contains reproducible code and summary outputs for analyzing motor-imagery-related EEG network reconfiguration using **Riemann Stereographic Energy Coupling (RSEC)**.
 
-**Current manuscript:** IEEE SPMB 2026, accepted with mandatory revision. The October 2, 2026 draft and its supporting results are available in [docs/spmb_2026](docs/spmb_2026). This is not a final published article or an accepted camera-ready version.
-
 RSEC is a nonlinear sensor-space feature-extraction method that transforms EEG epochs into analytic signals, maps them through a Riemann stereographic energy representation, and detects transient shared-energy events across EEG channel pairs.
 
 ## Project Overview
@@ -29,11 +27,8 @@ Raw EEG recordings are **not included** in this repository. Full reruns load the
 ```text
 rsec_eeg/                         Core RSEC feature, statistic, and surrogate functions
 scripts/                          Analysis, verification, and figure-generation scripts
-results/summary/spmb_2026/        Current manuscript's 12 supporting-result CSV files
-results/figures/spmb_2026/        Current figures and generated LaTeX tables
-docs/spmb_2026/                   Clean/red PDFs, portable LaTeX source ZIP and result index
-results/summary/                  Original submitted-paper summaries (historical)
-results/figures/                  Original submitted-paper figures (historical)
+results/summary/                  Subject-level and statistical summaries
+results/figures/                  Figures and tables generated from saved summaries
 ```
 
 ## Setup
@@ -49,31 +44,31 @@ pip install -r requirements.txt
 
 ## Verify Saved Results
 
-This script checks archive/data integrity, recomputes the primary paired tests and effect sizes from saved participant summaries, checks correction families and verifies supporting-result coverage. It does not rerun raw EEG processing or the paired bootstrap comparison analysis.
+This script checks data integrity, recomputes the primary paired tests and effect sizes from saved participant summaries, and checks correction families and supporting-result coverage. It does not rerun raw EEG processing or the paired bootstrap comparison analysis.
 
 ```powershell
-python .\scripts\verify_spmb_2026_results.py
+python .\scripts\verify_reported_statistics.py
 ```
 
 Expected final line:
 
 ```text
-All current SPMB result checks passed.
+All result checks passed.
 ```
 
 ## Recreate Figures from Saved Summaries
 
 ```powershell
-python .\scripts\make_spmb_2026_assets.py
+python .\scripts\make_figures_from_summaries.py
 ```
 
 Generated figures are saved to:
 
 ```text
-results/figures/spmb_2026/
+results/figures/
 ```
 
-Current manuscript assets:
+Figures and tables:
 
 ```text
 pipeline.png
@@ -85,7 +80,7 @@ table_primary.tex, table_comparisons.tex, table_sensitivity.tex
 
 ## Reproduced Summary Values
 
-The current all-epoch primary cohort contains 106 participants. The source archive describes the complete analysis settings. Primary results are:
+The all-epoch primary cohort contains 106 participants. Primary results are:
 
 ```text
 Imagery vs rest:
@@ -107,7 +102,7 @@ The matched conventional comparison is a separate analysis with balanced 15-epoc
 
 ## Full EEG Rerun
 
-The following commands recompute the primary RSEC condition summaries and surrogate control from PhysioNet EEGMMI. They do not run every conventional-comparison or sensitivity analysis. Those analyses are distributed here as validated saved results, not as a complete raw-EEG rerun workflow. The legacy runner reports t intervals; the manuscript's mean-difference intervals are participant-bootstrap intervals in the current saved results. Commands may take time depending on hardware and data availability. For the audited preprocessing environment, MNE-Python 1.7.1 was used.
+The following commands recompute the primary RSEC condition summaries and surrogate control from PhysioNet EEGMMI. Conventional-comparison and sensitivity results are provided as summary CSV files, not as a complete raw-EEG rerun workflow. The command-line summaries use t intervals; `primary_statistics.csv` contains participant-bootstrap mean-difference intervals. Commands may take time depending on hardware and data availability. The preprocessing environment used MNE-Python 1.7.1.
 
 ```powershell
 $subjects = 1..109 | Where-Object { $_ -notin 88,92,100 }
@@ -121,7 +116,7 @@ python .\scripts\run_physionet_eegmmi.py `
     --mode imagery_lr `
     --rest-run 1 `
     --data-dir ".\mne_data" `
-    --out-dir outputs_physionet_imagery_fresh `
+    --out-dir outputs_physionet_imagery `
     --duration-sec 4 `
     --band 1 31 `
     --decimals 3 `
@@ -136,7 +131,7 @@ python .\scripts\run_physionet_eegmmi.py `
     --mode execution_lr `
     --rest-run 1 `
     --data-dir ".\mne_data" `
-    --out-dir outputs_physionet_execution_fresh `
+    --out-dir outputs_physionet_execution `
     --duration-sec 4 `
     --band 1 31 `
     --decimals 3 `
@@ -147,9 +142,9 @@ python .\scripts\run_physionet_eegmmi.py `
 
 ```powershell
 python .\scripts\compare_physionet_modes.py `
-    --imagery-dir outputs_physionet_imagery_fresh `
-    --execution-dir outputs_physionet_execution_fresh `
-    --out-dir outputs_spmb_compare_fresh
+    --imagery-dir outputs_physionet_imagery `
+    --execution-dir outputs_physionet_execution `
+    --out-dir outputs_spmb_compare
 ```
 
 ### Phase-Randomized Surrogate Control
@@ -160,7 +155,7 @@ python .\scripts\run_physionet_surrogate.py `
     --mode imagery_lr `
     --rest-run 1 `
     --data-dir ".\mne_data" `
-    --out-dir outputs_surrogate_imagery_fresh `
+    --out-dir outputs_surrogate_imagery `
     --duration-sec 4 `
     --band 1 31 `
     --decimals 3 `
@@ -180,17 +175,11 @@ Excluded subjects:
 
 These subjects were excluded because baseline and task recordings had inconsistent sampling frequencies.
 
-All-109-participant resampling checks are included in `cohort_sensitivity.csv`. The current primary analysis uses all available task epochs; `--max-epochs 0` disables the earlier 50-epoch cap. This adds two execution epochs for subject 89 and explains the small change in execution-related summaries. The RSEC transformation and event rule are unchanged. Energy uses the natural logarithm, with `1e-12` stabilizers in normalization and the logarithm.
+All-109-participant resampling checks are included in `cohort_sensitivity.csv`. The primary analysis uses all available task epochs (`--max-epochs 0`). Energy uses the natural logarithm, with `1e-12` stabilizers in normalization and the logarithm.
 
-The current archive contains all 45 paired method comparisons (including 15 execution-rest comparisons not plotted), all 21 sensitivity tests (including seven execution-rest tests not tabulated), and all nine RSEC artifact/aggregation settings. See the [supporting-results index](docs/spmb_2026/SUPPLEMENT_INDEX.txt) for correction-family and provenance details. Historical linear-feature rows in the artifact files are preserved for provenance; they are not manuscript baselines.
+The summary CSV files include all 45 paired method comparisons, all 21 sensitivity tests, and all nine RSEC artifact/aggregation settings. Artifact files retain the full statistical correction families; RSEC rows are identified by `metric=rsec`.
 
-The original `scripts/verify_reported_statistics.py` and `scripts/make_figures_from_summaries.py` still operate on the historical top-level summaries. Use the `spmb_2026` commands above for the current manuscript. The two new data-derived figures and three tables can be regenerated without raw EEG; the author's pipeline image and original surrogate image are preserved unchanged from the source archive.
-
-## Manuscript and Submission Status
-
-The clean and red-marked PDFs contain the same current text. Red identifies additions/replacements against the approved original-based draft; deletions are recorded in `CHANGES.diff` inside the source ZIP. The archive compiles in Overleaf with `SPMBRiemannSteBK.tex` or `SPMBRiemannSteBK_changes.tex` as the main file.
-
-The nine-page manuscript has no imposed page-count target. The [official 2026 guidelines](https://isip.piconepress.com/conferences/ieee_spmb/2026/html/guidelines.shtml) prefer four to six pages; organizer approval for the final length and a fresh similarity report remain necessary. Repository publication is not conference submission or approval. No raw EEG or private future-paper material is included.
+The participant and comparison figures and three tables can be regenerated without raw EEG. The pipeline and surrogate images are supplied directly in `results/figures/`.
 
 ## Citation
 

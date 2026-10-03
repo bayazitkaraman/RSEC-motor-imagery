@@ -1,2 +1,2 @@
-# Preserve the exact supporting-data bytes recorded in the manuscript manifest.
-results/summary/spmb_2026/*.csv -text whitespace=cr-at-eol
+# Preserve the exact supporting-data bytes recorded in the checksum manifest.
+results/summary/*.csv -text whitespace=cr-at-eol

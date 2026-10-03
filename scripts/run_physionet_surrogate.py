@@ -131,7 +131,7 @@ def main() -> None:
     parser.add_argument("--duration-sec", type=float, default=4.0)
     parser.add_argument("--band", type=float, nargs=2, default=[1.0, 31.0])
     parser.add_argument("--decimals", type=int, default=3)
-    parser.add_argument("--max-epochs", type=int, default=20)
+    parser.add_argument("--max-epochs", type=int, default=0, help="Maximum epochs per condition; 0 uses all available epochs.")
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 

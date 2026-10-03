@@ -1,0 +1,15 @@
+{
+  "primary_statistics.csv": "92ccd67c86c2d8628baef90f0fd7594703f7e344a2265b065a220da439d2b0df",
+  "primary_subject_summary.csv": "c9541c0fc9912fede1ae2b4d13aa05a6c41c4aefcc9deac63c0e67e47f6fadef",
+  "imagery_roi_statistics.csv": "b25ee729cfa4f403bca9fed59d8704e64f5757efa1cefe113597bb148ca43f4a",
+  "imagery_channel_statistics.csv": "8f500fec845aa1e599487bfe173b3ad8b9e1c69588cd8a4e5fadf264170e203d",
+  "imagery_node_deltas_by_subject.csv": "426aa8eaa4d5bf2fc77b7281bd53c2bb8a87163f93553f3c99f9878b766958a8",
+  "sensitivity_statistics.csv": "4267fa39ccf3bc638f37bf3e64cd16eadcd8826c80df043530634b7e2ba5eeab",
+  "statistics_54.csv": "c521b5d7a3b10cd90f60d0c114d82ed4bec49222fc40eeda8a49f5ac3a0b8bbf",
+  "paired_effect_comparisons_45.csv": "87d59fc30f9729c23b99fe16a7dd2f23f1c05941f6a69c8593bc4c5601ef86de",
+  "cohort_sensitivity.csv": "5dcbddbc8faca0818311380a26be18172fccdfe16d4356c699d29b3af3c459ba",
+  "low_frequency_sensitivity_12.csv": "a88d6fca84daa6eb9a087fe3875698c73f34fab995070c9aa5a96c4381c34b31",
+  "amplitude_aggregation_statistics.csv": "b9d8b1c409266cdef499934afe84c8b4def42bea4ec5474236cce1fe6d5b743f",
+  "csd_statistics.csv": "b3fc916954154d5e3ac63d2630a3eeaf22392ea7f3c1d0fa1254fe498378cc45",
+  "surrogate_subject_summary.csv": "eab810ab404b679818d7086082cee8d44b2feea2ffb9f6b45e04b2eebaefa10a"
+}

@@ -1,11 +1,10 @@
 # run_precision_sensitivity.ps1
 # Run from the repository root:
-#   cd "C:\Users\Bayazit Karaman\Desktop\Projects\riemann-stereographic-energy-coupling"
 #   .\scripts\run_precision_sensitivity.ps1
 
 $bad = @(88, 92, 100)
 $subjects = 1..109 | Where-Object { $_ -notin $bad }
-$dataDir = "C:\Users\Bayazit Karaman\mne_data"
+$dataDir = ".\mne_data"
 $decimalsList = @(2, 3, 4, 5)
 
 foreach ($d in $decimalsList) {
@@ -16,7 +15,7 @@ foreach ($d in $decimalsList) {
     python .\scripts\run_physionet_eegmmi.py `
         --subjects $subjects `
         --mode imagery_lr `
-        --max-epochs 20 `
+        --max-epochs 0 `
         --data-dir "$dataDir" `
         --decimals $d `
         --out-dir "outputs_sensitivity_d${d}_imagery"
@@ -24,7 +23,7 @@ foreach ($d in $decimalsList) {
     python .\scripts\run_physionet_eegmmi.py `
         --subjects $subjects `
         --mode execution_lr `
-        --max-epochs 20 `
+        --max-epochs 0 `
         --data-dir "$dataDir" `
         --decimals $d `
         --out-dir "outputs_sensitivity_d${d}_execution"
