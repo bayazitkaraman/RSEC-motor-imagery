@@ -37,6 +37,8 @@ def rnt_energy(data: np.ndarray, eps: float = 1e-12) -> np.ndarray:
     data = np.asarray(data, dtype=float)
     if data.ndim != 2:
         raise ValueError("data must be shaped (n_channels, n_times).")
+    if not np.isfinite(data).all():
+        raise ValueError("EEG input contains NaN or infinite values.")
 
     analytic = hilbert(data, axis=-1)
     max_amp = np.max(np.abs(analytic), axis=-1, keepdims=True)

@@ -1,0 +1,21 @@
+{
+  "recordings": 654,
+  "subjects": 109,
+  "task_candidates": 9845,
+  "primary_recordings": 636,
+  "retained_task_epochs": 9844,
+  "primary_retained_task_epochs": 9544,
+  "incomplete_candidates": 1,
+  "incomplete_records": [
+    {
+      "subject": 104,
+      "run": 8,
+      "task_epochs": 13,
+      "within_record": 12
+    }
+  ],
+  "all_retained_windows_contained": true,
+  "interval_tolerance": "half a sample for annotation-onset rounding",
+  "mne": "1.7.1",
+  "code_sha256": "e145a249ffb6258a3bce20e64b0a83f34ef8a3228026706fdc10e87efaa1a7d9"
+}

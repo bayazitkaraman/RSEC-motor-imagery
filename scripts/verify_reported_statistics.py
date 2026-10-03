@@ -17,7 +17,7 @@ DATA = ROOT / "results/summary"
 
 def main():
     manifest = json.loads((DATA / "data_manifest.json").read_text())
-    assert len(manifest) == 13
+    assert set(manifest) == {path.name for path in DATA.glob('*.csv')}
     for name, expected_hash in manifest.items():
         content = (DATA / name).read_bytes()
         assert hashlib.sha256(content).hexdigest() == expected_hash, name
@@ -64,8 +64,31 @@ def main():
     assert set(nodes.index) == set(subjects.index) and nodes.shape == (106, 64)
     assert int((nodes[["Fp1", "Fpz", "Fp2"]].mean(axis=1) < 0).sum()) == 78
     assert int((nodes[["C3", "Cz", "C4"]].mean(axis=1) < 0).sum()) == 54
+    containment = json.loads((DATA / 'annotation_containment.json').read_text())
+    assert containment['all_retained_windows_contained']
+    assert containment['primary_retained_task_epochs'] == 9544
+    assert containment['retained_task_epochs'] == 9844
+    audit = pd.read_csv(DATA / 'annotation_containment.csv')
+    assert len(audit) == 654
+    inputs = pd.read_csv(DATA / 'comparison_subject_features.csv')
+    assert len(inputs) == 954 and not inputs.duplicated(['subject', 'band', 'condition']).any()
+    assert set(inputs.subject) == set(subjects.index)
+    counts = pd.read_csv(DATA / 'comparison_epoch_counts.csv')
+    selections = json.loads((DATA / 'comparison_epoch_selections.json').read_text())
+    assert len(selections) == 106 * 41
+    saved = {(r['subject'], r['condition'], r['selection']): r['indices'] for r in selections}
+    assert len(saved) == len(selections)
+    for subject in subjects.index:
+        for cindex, condition in enumerate(('rest', 'imagery', 'execution')):
+            record = counts[(counts.subject == subject) & (counts.condition == condition)]
+            assert len(record) == 3 and record.available_epochs.nunique() == 1
+            available = int(record.available_epochs.iloc[0])
+            rng = np.random.default_rng(np.random.SeedSequence([20261001, int(subject), cindex]))
+            for repetition in range(1 if condition == 'rest' else 20):
+                expected = np.sort(rng.choice(available, 15, replace=False)).tolist()
+                assert saved[subject, condition, repetition] == expected
     print(primary[["mean_delta", "dz", "p", "p_holm", "n_decrease"]].to_string())
-    print("Checked 13 CSV hashes, primary paired statistics, 54 method/contrast tests,")
+    print(f"Checked {len(manifest)} CSV hashes, primary paired statistics, 54 method/contrast tests,")
     print("45 paired comparisons, 21 sensitivity tests, and 9 RSEC artifact settings.")
     print("No raw EEG processing or paired bootstrap comparisons were rerun.")
     print("All result checks passed.")

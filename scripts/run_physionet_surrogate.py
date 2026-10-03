@@ -43,6 +43,8 @@ def _cohens_dz(delta: np.ndarray) -> float:
 
 
 def _make_surrogate_segments(segments: np.ndarray, rng: np.random.Generator) -> np.ndarray:
+    if segments.ndim != 3 or len(segments) == 0:
+        raise ValueError("At least one EEG epoch is required for surrogate generation.")
     return np.stack([phase_randomize_epoch(seg, rng=rng) for seg in segments], axis=0)
 
 
@@ -135,6 +137,9 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
+    if args.max_epochs <= 0:
+        args.max_epochs = None
+
     args.out_dir.mkdir(parents=True, exist_ok=True)
     args.data_dir.mkdir(parents=True, exist_ok=True)
     rng = np.random.default_rng(args.seed)
@@ -197,7 +202,8 @@ def main() -> None:
             ].iloc[0]
         )
         fig, ax = plt.subplots(figsize=(4.8, 3.35))
-        ax.boxplot([values], tick_labels=["Real − surrogate"], showmeans=True)
+        ax.boxplot([values], showmeans=True)
+        ax.set_xticks([1], ["Real − surrogate"])
         x = 1 + rng.normal(0, 0.035, size=len(values))
         ax.scatter(x, values, s=14, alpha=0.65)
         ax.axhline(0, linestyle="--", linewidth=1)

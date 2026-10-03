@@ -124,7 +124,7 @@ def summarize_and_compare(
 
 
 def _read_raws(subject: int, runs: list[int], data_dir: Path, l_freq: float, h_freq: float):
-    files = eegbci.load_data(subject, runs, path=str(data_dir), verbose="ERROR")
+    files = eegbci.load_data(subject, runs, path=str(data_dir), update_path=False, verbose="ERROR")
     raws = []
     for f in files:
         raw = mne.io.read_raw_edf(f, preload=True, verbose="ERROR")
@@ -160,8 +160,23 @@ def _extract_task_epochs(raw, duration_sec: float, max_epochs: int | None):
         preload=True,
         verbose="ERROR",
     )
-    if max_epochs is not None:
+    if max_epochs is not None and max_epochs > 0:
         epochs = epochs[:max_epochs]
+    # Match retained events to annotation intervals, including cropped/concatenated raws.
+    annotations = raw.annotations
+    starts = raw.time_as_index(annotations.onset, use_rounding=True, origin=annotations.orig_time)
+    if annotations.orig_time is not None:
+        starts += raw.first_samp
+    bounds = {(int(start), selected[label]): (float(onset), float(length))
+              for start, label, onset, length in zip(
+                  starts, annotations.description, annotations.onset, annotations.duration)
+              if label in selected}
+    tolerance = 0.5 / sfreq + 1e-10
+    for event in epochs.events:
+        onset, length = bounds[(int(event[0]), int(event[2]))]
+        offset = event[0] / sfreq - onset
+        if offset < -tolerance or offset + duration_sec > length + tolerance:
+            raise ValueError("Task epoch extends beyond its T1/T2 annotation interval.")
     return epochs.get_data(copy=True), epochs.ch_names, sfreq
 
 
@@ -169,7 +184,7 @@ def _extract_baseline_windows(raw, duration_sec: float, max_epochs: int | None):
     data = raw.get_data()
     sfreq = float(raw.info["sfreq"])
     windows = fixed_length_windows(data, sfreq=sfreq, window_sec=duration_sec, step_sec=duration_sec)
-    if max_epochs is not None:
+    if max_epochs is not None and max_epochs > 0:
         windows = windows[:max_epochs]
     return windows, raw.ch_names, sfreq
 

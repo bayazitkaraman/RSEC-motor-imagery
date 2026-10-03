@@ -5,3 +5,5 @@ scipy
 matplotlib
 scikit-learn
 mne
+mne-connectivity
+threadpoolctl

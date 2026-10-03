@@ -1,2 +1,5 @@
 # Preserve the exact supporting-data bytes recorded in the checksum manifest.
 results/summary/*.csv -text whitespace=cr-at-eol
+# Keep script provenance hashes stable across Windows and Unix checkouts.
+scripts/*.py text eol=lf
+rsec_eeg/*.py text eol=lf

@@ -129,7 +129,7 @@ for ax, data, summaries, names, title, color in zip(
     for x, values, record in zip(range(1, 4), scaled, summaries):
         np.testing.assert_allclose(values.mean(), float(record["mean_delta"])*1000, atol=1e-10)
         ax.scatter(x+rng.uniform(-.16, .16, len(values)), values, s=7, alpha=.4, color=color,
-                   linewidths=0, rasterized=True, zorder=2)
+                   linewidths=0, zorder=2)
         mean = float(record["mean_delta"])*1000
         low, high = float(record["ci_low"])*1000, float(record["ci_high"])*1000
         ax.errorbar(x+.25, mean, yerr=[[mean-low], [high-mean]], color="#111111", marker="D",
