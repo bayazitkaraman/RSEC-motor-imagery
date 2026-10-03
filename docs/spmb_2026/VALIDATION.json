@@ -1,0 +1,156 @@
+{
+  "status": "compiled_scientific_revision_validated",
+  "manuscript_status": "Accepted with mandatory revision; author and conference approval pending",
+  "source_sha256": "e69577e9e25b4eb389c8ca9e2e86b4b40336a786a61d1ae113c0e2cdeda108c1",
+  "no_authorial_first_person": true,
+  "abstract_whitespace_token_count": 150,
+  "related_work_whitespace_token_count": 398,
+  "page_target": null,
+  "approved_source_and_pdf_preserved": true,
+  "unchanged_assets": {
+    "IEEEtranSPMB.cls": "8ff2df843dda68d7759a2973cf97cb2df103dc58df728aeba8569ed784c77479",
+    "IEEEbibSPMB.bst": "3f8757a48897cf8af70101239f874c4266ca18193d966418b024fca1bd7b9fc1",
+    "fig3_real_minus_surrogate_delta.png": "43cb510957bb0ce823ebd9b2604585737b3cb54bd27e45ef497c53a1fcf2d294"
+  },
+  "author_updated_figure_1": {
+    "file": "pipeline.png",
+    "sha256": "3c34f2dd574232882fd257eb044e6114ca50687c414be1850c83ede0693902be",
+    "supplied_by": "Author during the focused editing pass on October 2, 2026",
+    "checked_before_compilation": true,
+    "equation_checks": [
+      "Normalization denominator uses epsilon_n, matching Equation (2)",
+      "Energy is minus log(rho + epsilon_E), matching Equation (4)",
+      "Channel superscripts and time subscripts are equivalent to the manuscript notation"
+    ],
+    "assistant_modified_image": false
+  },
+  "ranking_slogan_removed": true,
+  "precision_copyedits": [
+    "Amplitude rejection terminology",
+    "Global density versus regional participation",
+    "Natural logarithm specified",
+    "EOG expanded",
+    "Reference capitalization protected"
+  ],
+  "supporting_results_coverage": {
+    "paired_comparisons": 45,
+    "sensitivity_tests": 21,
+    "rsec_artifact_settings": 9,
+    "rsec_artifact_contrasts": 27,
+    "rsec_csd_contrasts": 3
+  },
+  "data_files_verified": 12,
+  "comparison_entries_checked": 54,
+  "rsec_largest_imagery_point_estimates": [
+    [
+      "broadband",
+      "imagery-rest"
+    ],
+    [
+      "broadband",
+      "imagery-execution"
+    ],
+    [
+      "mu",
+      "imagery-execution"
+    ],
+    [
+      "beta",
+      "imagery-execution"
+    ]
+  ],
+  "imagery_superiority_intervals_all_include_zero": true,
+  "artifact_reversals_and_small_cohorts_retained": true,
+  "red_and_clean_pdf_text_identical_ignoring_layout_hyphens": true,
+  "pdfs": {
+    "SPMBRiemannSteBK.pdf": {
+      "sha256": "9c27bee0ad0d31b34016e4675720ec24b56795afa85340c7be3d2b29a6bd1033",
+      "pages": 9,
+      "page_size_points": [
+        612,
+        792
+      ],
+      "embedded_fonts": {
+        "/FCKVCX+NimbusRomNo9L-Medi": "/Type1",
+        "/EMWLRP+NimbusRomNo9L-ReguItal": "/Type1",
+        "/DDETHJ+NimbusRomNo9L-Regu": "/Type1",
+        "/RFLWSQ+NimbusRomNo9L-MediItal": "/Type1",
+        "/SOSTRQ+CMR10": "/Type1",
+        "/DAXINA+CMSY10": "/Type1",
+        "/ZCJBVD+CMMI10": "/Type1",
+        "/KXLQCU+rsfs10": "/Type1",
+        "/JAQHME+StandardSymL-Slant_167": "/Type1",
+        "/WMGRYN+CMEX10": "/Type1",
+        "/IZMDER+StandardSymL": "/Type1",
+        "/BMQQDV+DejaVuSans": "/Type0",
+        "/BXGEVL+DejaVuSerif": "/Type0",
+        "/GCWXDV+DejaVuSans-Oblique": "/Type0",
+        "/ZLMWWO+NimbusMonL-Regu": "/Type1"
+      },
+      "red_characters_per_page": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "overfull_boxes": 0,
+      "unresolved_citations_or_references": 0
+    },
+    "SPMBRiemannSteBK_changes.pdf": {
+      "sha256": "ba3b25d7072485493b2b149930bda11fd72d4c5d0f3e9e8b2e551ba75e520a0b",
+      "pages": 9,
+      "page_size_points": [
+        612,
+        792
+      ],
+      "embedded_fonts": {
+        "/FCKVCX+NimbusRomNo9L-Medi": "/Type1",
+        "/EMWLRP+NimbusRomNo9L-ReguItal": "/Type1",
+        "/DDETHJ+NimbusRomNo9L-Regu": "/Type1",
+        "/RFLWSQ+NimbusRomNo9L-MediItal": "/Type1",
+        "/SOSTRQ+CMR10": "/Type1",
+        "/DAXINA+CMSY10": "/Type1",
+        "/ZCJBVD+CMMI10": "/Type1",
+        "/KXLQCU+rsfs10": "/Type1",
+        "/JAQHME+StandardSymL-Slant_167": "/Type1",
+        "/WMGRYN+CMEX10": "/Type1",
+        "/IZMDER+StandardSymL": "/Type1",
+        "/BMQQDV+DejaVuSans": "/Type0",
+        "/BXGEVL+DejaVuSerif": "/Type0",
+        "/GCWXDV+DejaVuSans-Oblique": "/Type0",
+        "/ZLMWWO+NimbusMonL-Regu": "/Type1"
+      },
+      "red_characters_per_page": [
+        1163,
+        2030,
+        1696,
+        4196,
+        2270,
+        2015,
+        4151,
+        4129,
+        999
+      ],
+      "overfull_boxes": 0,
+      "unresolved_citations_or_references": 0
+    }
+  },
+  "visual_qa": "Both complete PDFs rendered and inspected; no overlap or clipping",
+  "supporting_archive_repository_path": "https://github.com/bayazitkaraman/RSEC-motor-imagery/tree/main/docs/spmb_2026",
+  "outstanding": [
+    "Author scientific approval",
+    "Fresh similarity check",
+    "Confirm nine-page length with organizers",
+    "Response email and conference approval"
+  ],
+  "not_performed": [
+    "New EEG experiments",
+    "New similarity score",
+    "Email/submission"
+  ]
+}

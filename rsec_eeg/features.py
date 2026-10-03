@@ -18,14 +18,16 @@ def bandpass_filter(
 
 
 def rnt_energy(data: np.ndarray, eps: float = 1e-12) -> np.ndarray:
-    """Compute Riemann stereographic chordal-distance energy.
+    """Compute Riemann stereographic chordal-distance energy with natural log.
 
     Parameters
     ----------
     data : ndarray, shape (n_channels, n_times)
         Real-valued EEG epoch.
     eps : float
-        Small regularizer for epoch-wise channel normalization.
+        Numerical regularizer added to the channel normalization denominator
+        and to chordal distance inside the natural logarithm. The manuscript
+        uses 1e-12 for both, with the input EEG expressed in volts.
 
     Returns
     -------

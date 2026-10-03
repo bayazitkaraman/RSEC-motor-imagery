@@ -1,0 +1,52 @@
+SUPPORTING RESULTS INDEX
+Checked October 2, 2026. Paths below are relative to revision_support/data/.
+
+MAIN AND OMITTED COMPARISONS
+primary_statistics.csv: four primary contrasts, including real-minus-surrogate.
+statistics_54.csv: six features x three bands x three contrasts; Table 2.
+paired_effect_comparisons_45.csv: five baselines x three bands x three contrasts.
+  Includes all 15 execution-rest comparisons omitted from Figure 4, as well as
+  the 30 imagery-related comparisons displayed there. Intervals use the full
+  45-comparison family, not separate 15- or 30-comparison families.
+sensitivity_statistics.csv: seven settings x three contrasts (21 tests).
+  Includes the seven execution-rest tests omitted from Table 3; all 21 tests
+  remain in the original Holm family.
+cohort_sensitivity.csv: five cohort/sampling-rate configurations x three contrasts.
+low_frequency_sensitivity_12.csv: four connectivity features x three contrasts
+  when the lowest Fourier bin is excluded.
+
+SPATIAL AND PARTICIPANT RESULTS
+primary_subject_summary.csv: participant-level primary condition summaries.
+imagery_node_deltas_by_subject.csv: participant/channel imagery-rest differences.
+imagery_channel_statistics.csv: 64 channel-level tests and their correction.
+imagery_roi_statistics.csv: frontopolar, sensorimotor and between-region tests.
+
+ARTIFACT AND AGGREGATION RESULTS
+amplitude_aggregation_statistics.csv: all nine aggregation/rejection settings,
+  including all-channel and frontopolar limits of 150, 250 and 500 microvolts,
+  removal of the top 20% by either channel set, and median aggregation. Select
+  metric=rsec for the 27 RSEC setting/contrast rows described in the paper.
+  matched_original_mean_delta and matched_original_dz refer to the SAME retained
+  participants BEFORE amplitude-based rejection; both conditions of this
+  comparison retain the 1-31-Hz preprocessing. They do not mean unfiltered EEG.
+csd_statistics.csv: surface-Laplacian results; metric=rsec gives three contrasts.
+
+The artifact and CSD files also retain historical linear-feature rows for source
+provenance. Those rows are not manuscript baselines. Original correction-family
+columns are preserved; deleting other rows does not justify recomputing a smaller
+family. The manuscript reports RSEC artifact/CSD effects descriptively.
+Artifact masks were evaluated using GLOBAL density, not regional participation
+scores. The regional participant consistency analysis is a separate result.
+
+REPRODUCIBILITY AND ACCESS
+DATA_MANIFEST.json records original source paths and SHA256 hashes for all 12 CSVs.
+build_assets.py regenerates three tables and two figures from those saved results.
+validate_revision.py checks numerical entries, supporting-result coverage,
+preserved assets, terminology and the compiled clean/red PDFs.
+These are saved-results and figure/table regeneration materials, not a complete
+raw-EEG analysis environment. No raw EEG recordings are redistributed.
+The public repository location for the source archive and compiled manuscripts is:
+https://github.com/bayazitkaraman/RSEC-motor-imagery/tree/main/docs/spmb_2026
+The extracted CSV files are also under results/summary/spmb_2026/ in that repository.
+This is repository-hosted supporting material, not a publisher-hosted supplement.
+Supply the archive with submission when requested by the conference.
