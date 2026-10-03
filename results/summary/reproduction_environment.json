@@ -42,6 +42,18 @@
   },
   "platform": "Windows",
   "scope": "Installed scientific dependency closure, not the entire GPU development environment.",
+  "dependency_checks": {
+    "recorded_scientific_packages": 38,
+    "recorded_versions_and_active_dependency_requirements_satisfied": true,
+    "shared_environment_pip_check_passed": false,
+    "shared_environment_conflicts_outside_the_scientific_dependency_closure": [
+      "markdown 3.6: missing importlib-metadata",
+      "accelerate 1.1.1: missing psutil",
+      "memory-profiler 0.61.0: missing psutil",
+      "torch-geometric 2.6.1: missing psutil",
+      "pydantic 2.10.6: requires typing-extensions>=4.12.2; installed 4.11.0"
+    ]
+  },
   "mne_connectivity_setup": "Version 0.7.0 and its xarray/netCDF4/cftime dependencies were supplied by a local dependency directory on PYTHONPATH.",
   "validation": "All 10 statistical tables reproduced; bounded raw-data checks passed. A clean installation and full raw-EEG cohort rerun were not performed in this validation."
 }

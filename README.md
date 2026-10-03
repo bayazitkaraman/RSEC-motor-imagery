@@ -44,6 +44,8 @@ pip install -r requirements.txt
 
 The recorded study runtime used **Python 3.9.19**, NumPy 1.24.3, SciPy 1.13.1, pandas 2.2.2, Matplotlib 3.8.4, MNE-Python 1.7.1 and MNE-Connectivity 0.7.0. For exact-version reproduction, use Python 3.9.19 and install `requirements-reproduction.txt` instead of the general requirements. This file records the scientific dependency closure actually present in the study runtime, including its MNE-Connectivity dependency overlay; a clean installation of the exported pins has not been tested. The machine-readable record is `results/summary/reproduction_environment.json`.
 
+All 38 recorded scientific package versions and their active dependency requirements were checked successfully. A whole-environment `pip check` found five unrelated conflicts in the shared GPU development environment, listed in that record; this is not a claim that the entire shared environment is conflict-free.
+
 ## Verify Saved Results
 
 This script checks data integrity, recomputes the primary paired tests and effect sizes from saved participant summaries, and checks correction families and supporting-result coverage. It does not rerun raw EEG processing or the paired bootstrap comparison analysis.

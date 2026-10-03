@@ -119,7 +119,8 @@ def _save_density_plot(combined: pd.DataFrame, out_dir: Path) -> None:
 
     fig = plt.figure(figsize=(7, 4.5))
     ax = fig.add_subplot(111)
-    ax.boxplot(data, tick_labels=labels, showmeans=True)
+    ax.boxplot(data, showmeans=True)
+    ax.set_xticks(np.arange(1, len(labels) + 1), labels)
     ax.set_ylabel("Mean RSEC density per subject")
     ax.set_title("Global RSEC density by condition")
     ax.grid(axis="y", alpha=0.3)
@@ -135,7 +136,8 @@ def _save_delta_plot(combined: pd.DataFrame, out_dir: Path) -> None:
     ]
     fig = plt.figure(figsize=(6.5, 4.2))
     ax = fig.add_subplot(111)
-    ax.boxplot(data, tick_labels=["Imagery", "Execution"], showmeans=True)
+    ax.boxplot(data, showmeans=True)
+    ax.set_xticks([1, 2], ["Imagery", "Execution"])
     ax.axhline(0, linestyle="--", linewidth=1)
     ax.set_ylabel("Task minus rest RSEC density")
     ax.set_title("Subject-level task-minus-rest effect")

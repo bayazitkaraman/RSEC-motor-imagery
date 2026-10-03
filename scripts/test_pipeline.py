@@ -14,6 +14,7 @@ from rsec_eeg.features import rnt_energy, rnt_shared_energy_events
 from run_physionet_eegmmi import _extract_baseline_windows, _extract_task_epochs
 import run_physionet_surrogate as surrogate
 from summarize_primary_statistics import assemble_primary, subject_table, summarize_primary
+from compare_physionet_modes import _save_density_plot, _save_delta_plot
 
 
 def raw_fixture(duration=4.0, first_samp=0):
@@ -25,6 +26,22 @@ def raw_fixture(duration=4.0, first_samp=0):
 
 
 class PipelineTests(unittest.TestCase):
+    def test_comparison_boxplot_labels(self):
+        combined = pd.DataFrame({
+            'subject': [1, 2, 1, 2], 'mode': ['Imagery', 'Imagery', 'Execution', 'Execution'],
+            'rest': [.3, .4, .3, .4], 'task': [.2, .25, .32, .36],
+            'delta_task_minus_rest': [-.1, -.15, .02, -.04],
+        })
+        for function, labels in (
+                (_save_density_plot, ['Imagery\nRest', 'Imagery\nTask', 'Execution\nRest', 'Execution\nTask']),
+                (_save_delta_plot, ['Imagery', 'Execution'])):
+            with self.subTest(plot=function.__name__), TemporaryDirectory() as temporary:
+                with patch('matplotlib.figure.Figure.savefig', autospec=True) as save:
+                    function(combined, Path(temporary))
+                    self.assertTrue(save.called)
+                    figure = save.call_args.args[0]
+                    self.assertEqual([tick.get_text() for tick in figure.axes[0].get_xticklabels()], labels)
+
     def test_finite_input(self):
         epoch = np.ones((3, 640)) * 1e-5
         self.assertTrue(np.isfinite(rnt_energy(epoch)).all())
